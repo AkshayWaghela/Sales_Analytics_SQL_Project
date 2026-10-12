@@ -72,7 +72,7 @@ with st.sidebar:
 
 try:
     sql = """
-    SELECT d.order_id, d.order_date, d.customer_id, d.customer_name,
+    SELECT d.order_id, d.order_date, d.customer_id, d.real_customer_name,
            c.state, d.product_id, d.product_name, d.category,
            d.quantity, d.price, d.cost, d.revenue, d.cost_amount, d.profit
     FROM public.completed_order_details d
@@ -118,8 +118,8 @@ category = df.groupby("category", as_index=False).agg(revenue=("revenue","sum"),
 category["margin_pct"] = category.profit.div(category.revenue.replace(0, pd.NA)) * 100
 products = df.groupby(["product_name","category"], as_index=False).agg(revenue=("revenue","sum"), profit=("profit","sum"), units=("quantity","sum"), orders=("order_id","nunique")).sort_values("revenue", ascending=False)
 products["margin_pct"] = products.profit.div(products.revenue.replace(0, pd.NA)) * 100
-cust = df.groupby(["customer_id","customer_name","state"], as_index=False).agg(revenue=("revenue","sum"), profit=("profit","sum"), orders=("order_id","nunique"), units=("quantity","sum"), last_order=("order_date","max")).sort_values("revenue", ascending=False)
-rfm = df.groupby(["customer_id","customer_name"], as_index=False).agg(last_order=("order_date","max"), frequency=("order_id","nunique"), monetary=("revenue","sum"))
+cust = df.groupby(["customer_id","real_customer_name","state"], as_index=False).agg(revenue=("revenue","sum"), profit=("profit","sum"), orders=("order_id","nunique"), units=("quantity","sum"), last_order=("order_date","max")).sort_values("revenue", ascending=False)
+rfm = df.groupby(["customer_id","real_customer_name"], as_index=False).agg(last_order=("order_date","max"), frequency=("order_id","nunique"), monetary=("revenue","sum"))
 rfm["recency_days"] = (df.order_date.max() - rfm.last_order).dt.days
 try:
     rfm["R"] = pd.qcut(rfm.recency_days.rank(method="first"), 5, labels=[5,4,3,2,1]).astype(int)
@@ -189,9 +189,9 @@ with tabs[3]:
     st.subheader("Customer Analytics")
     left,right = st.columns(2)
     with left:
-        st.plotly_chart(px.bar(cust.head(10).sort_values("revenue"), x="revenue", y="customer_name", orientation="h", title="Top Customers by Revenue"), use_container_width=True)
+        st.plotly_chart(px.bar(cust.head(10).sort_values("revenue"), x="revenue", y="real_customer_name", orientation="h", title="Top Customers by Revenue"), use_container_width=True)
     with right:
-        st.plotly_chart(px.scatter(cust, x="orders", y="revenue", color="state", hover_name="customer_name", title="Customer Revenue vs Order Frequency"), use_container_width=True)
+        st.plotly_chart(px.scatter(cust, x="orders", y="revenue", color="state", hover_name="real_customer_name", title="Customer Revenue vs Order Frequency"), use_container_width=True)
     st.dataframe(cust, use_container_width=True, hide_index=True)
 
 with tabs[4]:
