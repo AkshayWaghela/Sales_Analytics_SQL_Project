@@ -72,7 +72,7 @@ with st.sidebar:
 
 try:
     sql = """
-    SELECT d.order_id, d.order_date, d.customer_id,        COALESCE(c.realistic_customer_name, d.customer_name) AS customer_name,
+    SELECT d.order_id, d.order_date, d.customer_id,        COALESCE(c.real_customer_name, d.customer_name) AS customer_name,
            c.state, d.product_id, d.product_name, d.category,
            d.quantity, d.price, d.cost, d.revenue, d.cost_amount, d.profit
     FROM public.completed_order_details d
